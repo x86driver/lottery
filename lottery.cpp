@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <iterator>
+#include <string.h>
 
 using namespace std;
 
@@ -19,9 +20,10 @@ public:
 	Numbers(unsigned int max) : max(max), idx(0) {
 		lotteries.reserve(max);
         	for (int i = 0; i < 49; ++i)
-	                narray[i] = i;
+	                narray[i] = i+1;
 	}
-	int exist();	//檢查這次產生出來的是否已經存在於陣列, -1 沒有, 其他代表第幾個
+	int exist();
+	int exist(struct Lottery &lot);
 	void generate_all();
 	void generate_one();
 	void show_one() const {
@@ -50,13 +52,15 @@ void Numbers::show_all() const
 
 void Numbers::generate_all()
 {
-//	for (unsigned int i = 0; i < max; ++i) {
-//		generate_one();
-//		if (exist() == -1)
-//	}
-	generate_one();
-	lottery.idx = idx;
-	lotteries.push_back(lottery);
+	for (unsigned int i = 0; i < max; ++i) {
+		generate_one();
+		int e = exist();
+		if (e == -1) {
+			lottery.idx = idx++;
+			lotteries.push_back(lottery);
+		} else
+			printf("the same with %d\n", e);
+	}
 }
 
 void Numbers::generate_one()
@@ -65,6 +69,16 @@ void Numbers::generate_one()
 	for (int i = 0; i < 6; ++i)
 		lottery.n[i] = static_cast<unsigned char>(narray[i]);
 	sort(&lottery.n[0], &lottery.n[6]);
+}
+
+int Numbers::exist(struct Lottery &lot)
+{
+	struct Lottery back;
+	memcpy(&back, &lottery, sizeof(struct Lottery));
+	memcpy(&lottery, &lot, sizeof(struct Lottery));
+	int i = exist();
+	memcpy(&lottery, &back, sizeof(struct Lottery));
+	return i;
 }
 
 int Numbers::exist()
@@ -96,11 +110,15 @@ int main(int argc, char **argv)
 	unsigned int max_num = atoi(argv[1]);
 	class Numbers num(max_num);
 
+	struct Lottery lot = {
+		{2, 13, 17, 27, 31, 36},
+	};
+
 	printf("Generate %d numbers\n", max_num);
 
 	num.generate_all();
 	num.show_all();
-
+	printf("%d\n", num.exist(lot));
 	return 0;
 }
 
