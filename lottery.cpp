@@ -62,11 +62,12 @@ void Numbers::show_all() const
 void Numbers::generate_all()
 {
 	int progress = 0;
-	int div = max / 100;
+	const double factor = 10000.0;
+	int div = max / (100 * factor);
 	for (unsigned int i = 0; i < max; ++i) {
 		if ((i % div) == 0) {
 			++progress;
-			printf("\rGenerating... %d %%", progress);
+			printf("\rGenerating... %.4f %%", (double)(progress/factor));
 			fflush(NULL);
 		}
 regen:
