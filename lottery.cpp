@@ -22,13 +22,14 @@ public:
         	for (int i = 0; i < 49; ++i)
 	                narray[i] = i+1;
 	}
-	int exist();
-	int exist(struct Lottery &lot);
+	unsigned int exist();
+	unsigned int exist(struct Lottery &lot);
 	void generate_all();
 	void generate_one();
-	void show_one() const {
+	void show_one(unsigned int index) const {
+		printf("%d: ", index);
 		for (int i = 0; i < 6; ++i)
-			printf("%d ", lottery.n[i]);
+			printf("%d ", lotteries[index].n[i]);
 		printf("\n");
 	}
 	void show_all() const;
@@ -40,27 +41,45 @@ private:
 
 void Numbers::show_all() const
 {
+	FILE *fp = fopen("a.txt", "wb");
+	if (!fp) {
+		perror("fopen");
+		return;
+	}
+	time_t t = time(0);
+	fprintf(fp, "Generate on %s\n", asctime(localtime(&t)));
 	vector<struct Lottery>::const_iterator it = lotteries.begin();
 	for (; it != lotteries.end(); ++it) {
-			printf("%d: ", (*it).idx);
+			fprintf(fp, "%d: ", (*it).idx);
 		for (int i = 0; i < 6; ++i) {
-			printf("%d ", (*it).n[i]);
+			fprintf(fp, "%d ", (*it).n[i]);
 		}
-		printf("\n");
+		fprintf(fp, "\n");
 	}
+	fclose(fp);
 }
 
 void Numbers::generate_all()
 {
+	int progress = 0;
+	int div = max / 100;
 	for (unsigned int i = 0; i < max; ++i) {
+		if ((i % div) == 0) {
+			++progress;
+			printf("\rGenerating... %d %%", progress);
+			fflush(NULL);
+		}
 		generate_one();
-		int e = exist();
-		if (e == -1) {
+		unsigned int e = exist();
+		if (e == ~1U) {
 			lottery.idx = idx++;
 			lotteries.push_back(lottery);
-		} else
-			printf("the same with %d\n", e);
+		} else {
+//			printf("the same with %d,\t", e);
+//			show_one(e);
+		}
 	}
+	printf("\nDone.\n");
 }
 
 void Numbers::generate_one()
@@ -71,22 +90,21 @@ void Numbers::generate_one()
 	sort(&lottery.n[0], &lottery.n[6]);
 }
 
-int Numbers::exist(struct Lottery &lot)
+unsigned int Numbers::exist(struct Lottery &lot)
 {
 	struct Lottery back;
 	memcpy(&back, &lottery, sizeof(struct Lottery));
 	memcpy(&lottery, &lot, sizeof(struct Lottery));
-	int i = exist();
+	unsigned int i = exist();
 	memcpy(&lottery, &back, sizeof(struct Lottery));
 	return i;
 }
 
-int Numbers::exist()
+unsigned int Numbers::exist()
 {
-	int index = 0;
 	bool exist = true;
 	vector<struct Lottery>::iterator it = lotteries.begin();
-	for (; it != lotteries.end(); ++it, ++index) {
+	for (; it != lotteries.end(); ++it) {
 		exist = true;
 		for (int i = 0; i < 6; ++i) {
 			if (lottery.n[i] != (*it).n[i]) {
@@ -95,9 +113,9 @@ int Numbers::exist()
 			}
 		}
 		if (exist == true)
-			return index;
+			return (*it).idx;
 	}
-	return -1;
+	return ~1U;
 }
 
 int main(int argc, char **argv)
@@ -118,7 +136,11 @@ int main(int argc, char **argv)
 
 	num.generate_all();
 	num.show_all();
-	printf("%d\n", num.exist(lot));
+	unsigned int bingo = num.exist(lot);
+	if (bingo != ~1U)
+		printf("Win on %u!!", bingo);
+	else
+		printf("Lose!!\n");
 	return 0;
 }
 
