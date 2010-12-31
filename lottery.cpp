@@ -69,12 +69,14 @@ void Numbers::generate_all()
 			printf("\rGenerating... %d %%", progress);
 			fflush(NULL);
 		}
+regen:
 		generate_one();
 		unsigned int e = exist();
 		if (e == ~1U) {
 			lottery.idx = idx++;
 			lotteries.push_back(lottery);
 		} else {
+			goto regen;
 //			printf("the same with %d,\t", e);
 //			show_one(e);
 		}
