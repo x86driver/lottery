@@ -38,10 +38,9 @@ private:
 
 void Numbers::show_all() const
 {
-	int index;
 	vector<struct Lottery>::const_iterator it = lotteries.begin();
-	for (; it != lotteries.end(); ++it, ++index) {
-			printf("%d: ", index);
+	for (; it != lotteries.end(); ++it) {
+			printf("%d: ", (*it).idx);
 		for (int i = 0; i < 6; ++i) {
 			printf("%d ", (*it).n[i]);
 		}
